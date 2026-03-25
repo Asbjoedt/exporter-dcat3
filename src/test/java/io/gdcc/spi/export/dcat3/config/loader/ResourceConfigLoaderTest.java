@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 
-public class PropertiesMappingLoaderTest {
+public class ResourceConfigLoaderTest {
 
     private ResourceConfig load(String resource) throws Exception {
         try (InputStream in = getClass().getClassLoader().getResourceAsStream(resource)) {
@@ -25,8 +25,7 @@ public class PropertiesMappingLoaderTest {
     void loads_subject() throws Exception {
         ResourceConfig resourceConfig = load("AP_NL30/mapping/dcat-catalog.properties");
 
-        assertThat(resourceConfig.subject().iriConst())
-                .isEqualTo("https://data.example.org/catalog/gdn-test");
+        assertThat(resourceConfig.subject().iriConst()).isEqualTo("https://dataverse.geologischedienst.nl");
         assertThat(resourceConfig.subject().iriJson()).isNull();
         assertThat(resourceConfig.subject().iriTemplate()).isNull();
     }
@@ -66,8 +65,7 @@ public class PropertiesMappingLoaderTest {
 
         // contact node-ref property
         ValueSource cp = resourceConfig.props().get("contactPoint");
-        assertValueSource(
-                cp, "node-ref", "dcat:contactPoint", null, null, null, null, "contact", false);
+        assertValueSource(cp, "node-ref", "dcat:contactPoint", null, null, null, null, "contact", false);
 
         // contact node template
         NodeTemplate contact = resourceConfig.nodes().get("contact");
@@ -107,13 +105,12 @@ public class PropertiesMappingLoaderTest {
 
         // publisher node-ref property
         ValueSource pub = resourceConfig.props().get("publisher");
-        assertValueSource(
-                pub, "node-ref", "dct:publisher", null, null, null, null, "publisher", false);
+        assertValueSource(pub, "node-ref", "dct:publisher", null, null, null, null, "publisher", false);
 
         // publisher node template
         NodeTemplate publisher = resourceConfig.nodes().get("publisher");
-        assertNodeTemplate(publisher, "publisher", "bnode", null, "foaf:Agent");
-        assertThat(publisher.props()).hasSize(2);
+        assertNodeTemplate(publisher, "publisher", "iri", "https://ror.org/01bnjb948", "foaf:Agent");
+        assertThat(publisher.props()).hasSize(3);
         assertValueSource(
                 publisher.props().get("name_nl"),
                 "literal",
@@ -144,8 +141,7 @@ public class PropertiesMappingLoaderTest {
             props.foo.predicate = dct:title
             props.foo.bar = unknown
             """;
-        ResourceConfig resourceConfig =
-                new ResourceConfigLoader().load(new ByteArrayInputStream(props.getBytes()));
+        ResourceConfig resourceConfig = new ResourceConfigLoader().load(new ByteArrayInputStream(props.getBytes()));
 
         // loader should have created ValueSource and set the known field only
         assertThat(resourceConfig.props()).containsKey("foo");
@@ -165,64 +161,52 @@ public class PropertiesMappingLoaderTest {
             props.language.map.nl = http://publications.europa.eu/resource/authority/language/NLD
             props.language.map.en = http://publications.europa.eu/resource/authority/language/ENG
             """;
-        ResourceConfig cfg =
-                new ResourceConfigLoader().load(new java.io.ByteArrayInputStream(props.getBytes()));
+        ResourceConfig cfg = new ResourceConfigLoader().load(new java.io.ByteArrayInputStream(props.getBytes()));
 
         ValueSource lang = cfg.props().get("language");
         assertThat(lang.map())
-                .containsEntry(
-                        "nl", "http://publications.europa.eu/resource/authority/language/NLD")
-                .containsEntry(
-                        "en", "http://publications.europa.eu/resource/authority/language/ENG");
+                .containsEntry("nl", "http://publications.europa.eu/resource/authority/language/NLD")
+                .containsEntry("en", "http://publications.europa.eu/resource/authority/language/ENG");
     }
 
     @Test
     void fails_cleanly_on_missing_resource() {
-        assertThatThrownBy(
-                        () -> {
-                            try (InputStream in =
-                                    getClass()
-                                            .getClassLoader()
-                                            .getResourceAsStream("mappings/nope.properties")) {
-                                new ResourceConfigLoader()
-                                        .load(in); // in == null → NPE if you don’t guard
-                            }
-                        })
-                .isInstanceOf(NullPointerException.class)
-                .as("Guard against null InputStream in your loader (or throw FileNotFound)")
-                .withFailMessage(
-                        "Consider making PropertiesMappingLoader.load throw FileNotFoundException"
-                                + " when InputStream is null");
+        assertThatThrownBy(() -> {
+                    try (InputStream in = getClass().getClassLoader().getResourceAsStream("mappings/nope.properties")) {
+                        new ResourceConfigLoader().load(in); // now throws IllegalArgumentException if in == null
+                    }
+                })
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("InputStream is null");
     }
 
     @Test
     void loads_node_template_iri_fields_and_map_and_multi() throws Exception {
         String props =
                 """
-        # rights node: boolean -> mapped IRI
-        nodes.rights.kind = iri
-        nodes.rights.type = dct:RightsStatement
-        nodes.rights.iri.json = $.restricted
-        nodes.rights.map.true  = http://publications.europa.eu/resource/authority/access-right/RESTRICTED
-        nodes.rights.map.false = http://publications.europa.eu/resource/authority/access-right/PUBLIC
+                # rights node: boolean -> mapped IRI
+                nodes.rights.kind = iri
+                nodes.rights.type = dct:RightsStatement
+                nodes.rights.iri.json = $.restricted
+                nodes.rights.map.true  = http://publications.europa.eu/resource/authority/access-right/RESTRICTED
+                nodes.rights.map.false = http://publications.europa.eu/resource/authority/access-right/PUBLIC
 
-        # theme node: multi values -> mapped IRIs
-        nodes.theme.kind = iri
-        nodes.theme.type = skos:Concept
-        nodes.theme.multi = true
-        nodes.theme.iri.json = $.themes[*]
-        nodes.theme.map.ener = http://publications.europa.eu/resource/authority/data-theme/ENER
-        nodes.theme.map.tech = http://publications.europa.eu/resource/authority/data-theme/TECH
+                # theme node: multi values -> mapped IRIs
+                nodes.theme.kind = iri
+                nodes.theme.type = skos:Concept
+                nodes.theme.multi = true
+                nodes.theme.iri.json = $.themes[*]
+                nodes.theme.map.ener = http://publications.europa.eu/resource/authority/data-theme/ENER
+                nodes.theme.map.tech = http://publications.europa.eu/resource/authority/data-theme/TECH
 
-        # accessURL node: IRI from format
-        nodes.acc.kind = iri
-        nodes.acc.type = rdfs:Resource
-        nodes.acc.iri.json = $.id
-        nodes.acc.iri.format = http://localhost:8080/api/access/datafile/${value}
-    """;
+                # accessURL node: IRI from format
+                nodes.acc.kind = iri
+                nodes.acc.type = rdfs:Resource
+                nodes.acc.iri.json = $.id
+                nodes.acc.iri.format = http://localhost:8080/api/access/datafile/${value}
+            """;
 
-        ResourceConfig cfg =
-                new ResourceConfigLoader().load(new ByteArrayInputStream(props.getBytes()));
+        ResourceConfig cfg = new ResourceConfigLoader().load(new ByteArrayInputStream(props.getBytes()));
 
         // rights
         NodeTemplate rights = cfg.nodes().get("rights");
@@ -233,12 +217,8 @@ public class PropertiesMappingLoaderTest {
         assertThat(rights.iriFormat()).isNull();
         assertThat(rights.multi()).isFalse();
         assertThat(rights.iriMap())
-                .containsEntry(
-                        "true",
-                        "http://publications.europa.eu/resource/authority/access-right/RESTRICTED")
-                .containsEntry(
-                        "false",
-                        "http://publications.europa.eu/resource/authority/access-right/PUBLIC");
+                .containsEntry("true", "http://publications.europa.eu/resource/authority/access-right/RESTRICTED")
+                .containsEntry("false", "http://publications.europa.eu/resource/authority/access-right/PUBLIC");
 
         // theme
         NodeTemplate theme = cfg.nodes().get("theme");
@@ -248,10 +228,8 @@ public class PropertiesMappingLoaderTest {
         assertThat(theme.multi()).isTrue();
         assertThat(theme.iriJson()).isEqualTo("$.themes[*]");
         assertThat(theme.iriMap())
-                .containsEntry(
-                        "ener", "http://publications.europa.eu/resource/authority/data-theme/ENER")
-                .containsEntry(
-                        "tech", "http://publications.europa.eu/resource/authority/data-theme/TECH");
+                .containsEntry("ener", "http://publications.europa.eu/resource/authority/data-theme/ENER")
+                .containsEntry("tech", "http://publications.europa.eu/resource/authority/data-theme/TECH");
 
         // accessURL
         NodeTemplate acc = cfg.nodes().get("acc");
@@ -260,5 +238,25 @@ public class PropertiesMappingLoaderTest {
         assertThat(acc.type()).isEqualTo("rdfs:Resource");
         assertThat(acc.iriJson()).isEqualTo("$.id");
         assertThat(acc.iriFormat()).isEqualTo("http://localhost:8080/api/access/datafile/${value}");
+    }
+
+    @Test
+    void orders_indexed_json_paths_numerically_for_value_sources() throws Exception {
+        // Deliberately put json.2 before json.1 to prove numeric ordering.
+        String props =
+                """
+            subject.iri.const = https://example.org/s
+            props.accessURL.predicate = dcat:accessURL
+            props.accessURL.as = iri
+            props.accessURL.json.2 = $$.env.apiBaseUrl
+            props.accessURL.json.1 = $.id
+            props.accessURL.format = ${1}access/datafile/${2}
+            """;
+
+        ResourceConfig cfg = new ResourceConfigLoader().load(new ByteArrayInputStream(props.getBytes()));
+
+        ValueSource vs = cfg.props().get("accessURL");
+        assertThat(vs).isNotNull();
+        assertThat(vs.jsonPaths()).containsExactly("$.id", "$$.env.apiBaseUrl");
     }
 }

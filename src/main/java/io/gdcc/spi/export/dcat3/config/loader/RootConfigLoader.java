@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,10 +23,7 @@ import java.util.regex.Pattern;
 public final class RootConfigLoader {
     public static final String SYS_PROP = "dataverse.dcat3.config";
     private static final Pattern ELEMENT_ID_PATTERN = Pattern.compile("^element\\.([^.]+)\\.id$");
-    private static final Pattern RELATION_PREDICATE_PATTERN =
-            Pattern.compile("^relation\\.([^.]+)\\.predicate$");
-
-    // NEW: dcat.format.<format>.<flag>, where flag ∈ {availableToUsers, harvestable}
+    private static final Pattern RELATION_PREDICATE_PATTERN = Pattern.compile("^relation\\.([^.]+)\\.predicate$");
     private static final Pattern FORMAT_FLAG_PATTERN =
             Pattern.compile("^dcat\\.format\\.([^.]+)\\.(availableToUsers|harvestable)$");
 
@@ -42,9 +40,7 @@ public final class RootConfigLoader {
         String rootProperty = System.getProperty(SYS_PROP);
         if (rootProperty == null || rootProperty.trim().isEmpty()) {
             throw new IllegalArgumentException(
-                    "System property '"
-                            + SYS_PROP
-                            + "' not set; please provide a path to dcat-root.properties");
+                    "System property '" + SYS_PROP + "' not set; please provide a path to dcat-root.properties");
         }
 
         FileResolver.ResolvedFile resolved = resolveFile(null, rootProperty);
@@ -82,6 +78,12 @@ public final class RootConfigLoader {
             elements.add(new Element(id, type, file));
         }
 
+        // Normalize ordering: Properties enumeration order is not guaranteed.
+        // Sorting here ensures deterministic builds and reproducible outputs.
+        elements.sort(Comparator.comparing(Element::id, Comparator.nullsLast(String::compareTo))
+                .thenComparing(Element::typeCurieOrIri, Comparator.nullsLast(String::compareTo))
+                .thenComparing(Element::file, Comparator.nullsLast(String::compareTo)));
+
         // relations: relation.<name>.{subject,predicate,object}
         List<Relation> relations = new ArrayList<>();
         for (String key : properties.stringPropertyNames()) {
@@ -97,7 +99,12 @@ public final class RootConfigLoader {
             relations.add(relation);
         }
 
-        // NEW: dcat.format.<format>.<flag> -> defaults TRUE on absence
+        // Normalize ordering for deterministic relation application.
+        relations.sort(Comparator.comparing(Relation::subjectElementId, Comparator.nullsLast(String::compareTo))
+                .thenComparing(Relation::predicateCurieOrIri, Comparator.nullsLast(String::compareTo))
+                .thenComparing(Relation::objectElementId, Comparator.nullsLast(String::compareTo)));
+
+        // dcat.format.<format>.<flag> -> defaults TRUE on absence
         Map<String, FormatFlags> formats = parseFormats(properties);
 
         return new RootConfig(trace, prefixes, elements, relations, formats, baseDir);
@@ -149,7 +156,8 @@ public final class RootConfigLoader {
     private static boolean safeBoolean(String raw, boolean defaultValue) {
         if (raw == null) return defaultValue;
         String cleaned = raw.trim();
-        if (cleaned.endsWith(";")) cleaned = cleaned.substring(0, cleaned.length() - 1).trim();
+        if (cleaned.endsWith(";"))
+            cleaned = cleaned.substring(0, cleaned.length() - 1).trim();
         return Boolean.parseBoolean(cleaned);
     }
 

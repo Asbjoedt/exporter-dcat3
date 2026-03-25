@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>dcat-3</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>v0.8.5-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>DCAT3 Exporter for Dataverse</name>
   <description>DCAT3 is the latest version of the Data Catalog Vocabulary, enhancing interoperability and discoverability of datasets by introducing features like versioning, dataset series, and
@@ -42,6 +42,7 @@
   <properties>
     <!-- general properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jdk.version>17</jdk.version>
 
     <!-- compile dependency versions -->
     <dataverse.spi.version>2.0.0</dataverse.spi.version>
@@ -186,8 +187,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <release>17</release>
-          <proc>full</proc>
           <!-- making sure and explicit that the spi file is generated -->
           <annotationProcessorPaths>
             <path>
@@ -209,14 +208,8 @@
             <importOrder>
               <wildcardsLast>false</wildcardsLast>
             </importOrder>
-            <removeUnusedImports>
-              <engine>google-java-format</engine>
-            </removeUnusedImports>
-            <googleJavaFormat>
-              <version>1.17.0</version>
-              <style>AOSP</style>
-              <reflowLongStrings>true</reflowLongStrings>
-            </googleJavaFormat>
+            <removeUnusedImports></removeUnusedImports>
+            <palantirJavaFormat></palantirJavaFormat>
           </java>
           <pom>
             <includes>

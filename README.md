@@ -99,7 +99,7 @@ application_profiles/
 > Configure it similar to the exporters' directory:
 >
 > ```xml
-> <jvm-options>-Ddataverse.dcat3.config=/path/to/dcat3-config</jvm-options>
+> <jvm-options>-Ddataverse.dcat3.config=/path/to/dcat3-config/dcat-root.properties</jvm-options>
 > ```
 >
 > In containers, you can inject the same as a Java option (e.g., via `PAYARA_JAVA_OPTS` or your runtime’s JVM opts mechanism). The exporter resolves files from this directory first and may fall back to classpath resources if not found.
@@ -183,6 +183,16 @@ Place SHACL shapes under `src/test/resources/shacl/` and wire them in the tests.
 
 - **JSONPath surprises**
     - Use `$.…` for the current scope (e.g., iterated file item) and `$$.…` to reach the original root. Enable tracing if available in your root config.
+
+---
+
+## Determinism note (RDF/XML & Turtle)
+
+This exporter produces an RDF **graph** (a set of triples). RDF serializations such as **RDF/XML** and **Turtle** are **not canonical**: the same RDF graph may be written in different, but equivalent textual forms (e.g., different statement ordering, grouping, or blank node identifiers). [3](http://infolab.stanford.edu/~stefan/daml/order.html)[4](https://github.com/gdcc/dataverse-exporters)
+
+In practice, this means repeated exports can be **byte-different** while still representing the **same RDF graph** (graph-isomorphic), especially when the output contains **blank nodes** (used for nested structures like contact points, standards, locations, checksums, etc.). [4](https://github.com/gdcc/dataverse-exporters)[3](http://infolab.stanford.edu/~stefan/daml/order.html)
+
+**Recommendation for regression tests:** do not compare RDF/XML or Turtle output as raw bytes. Instead, parse output into a model and compare graphs using **isomorphism** (e.g., Jena `Model.isIsomorphicWith`).
 
 ---
 
