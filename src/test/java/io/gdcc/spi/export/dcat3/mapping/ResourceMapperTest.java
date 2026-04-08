@@ -1,5 +1,7 @@
 package io.gdcc.spi.export.dcat3.mapping;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -33,7 +35,7 @@ class ResourceMapperTest {
     @DisplayName("build() adds RDF.type and a literal property from constValue with language")
     void build_adds_type_and_literal_from_const() throws Exception {
         // Real Prefixes
-        Map<String, String> ns = new LinkedHashMap<String, String>();
+        Map<String, String> ns = new LinkedHashMap<>();
         ns.put("dcat", "http://www.w3.org/ns/dcat#");
         ns.put("dct", "http://purl.org/dc/terms/");
         Prefixes prefixes = new Prefixes(ns);
@@ -52,17 +54,17 @@ class ResourceMapperTest {
         when(vsTitle.constValue()).thenReturn("Demo");
         when(vsTitle.lang()).thenReturn("en");
         when(vsTitle.datatype()).thenReturn(null);
-        when(vsTitle.map()).thenReturn(java.util.Collections.emptyMap());
-        when(vsTitle.jsonPaths()).thenReturn(java.util.Collections.emptyList());
+        when(vsTitle.map()).thenReturn(emptyMap());
+        when(vsTitle.jsonPaths()).thenReturn(emptyList());
         when(vsTitle.json()).thenReturn(null);
         when(vsTitle.multi()).thenReturn(false);
         when(vsTitle.format()).thenReturn(null);
 
-        Map<String, ValueSource> props = new LinkedHashMap<String, ValueSource>();
+        Map<String, ValueSource> props = new LinkedHashMap<>();
         props.put("title", vsTitle);
 
         when(rc.props()).thenReturn(props);
-        when(rc.nodes()).thenReturn(java.util.Collections.emptyMap());
+        when(rc.nodes()).thenReturn(emptyMap());
         when(rc.scopeJson()).thenReturn(null);
 
         JaywayJsonFinder finder = finderFor("{\"dataset\":{\"title\":\"Demo\"}}");
@@ -93,7 +95,7 @@ class ResourceMapperTest {
     @DisplayName("build() maps IRI object from JSON path with as='iri' and default (single) selection")
     void build_maps_iri_from_json() throws Exception {
         // Real Prefixes
-        Map<String, String> ns = new LinkedHashMap<String, String>();
+        Map<String, String> ns = new LinkedHashMap<>();
         ns.put("dcat", "http://www.w3.org/ns/dcat#");
         ns.put("dct", "http://purl.org/dc/terms/");
         Prefixes prefixes = new Prefixes(ns);
@@ -115,14 +117,14 @@ class ResourceMapperTest {
         when(vsId.format()).thenReturn(null);
         when(vsId.lang()).thenReturn(null);
         when(vsId.datatype()).thenReturn(null);
-        when(vsId.map()).thenReturn(java.util.Collections.emptyMap());
-        when(vsId.jsonPaths()).thenReturn(java.util.Collections.emptyList());
+        when(vsId.map()).thenReturn(emptyMap());
+        when(vsId.jsonPaths()).thenReturn(emptyList());
 
-        Map<String, ValueSource> props = new LinkedHashMap<String, ValueSource>();
+        Map<String, ValueSource> props = new LinkedHashMap<>();
         props.put("identifier", vsId);
 
         when(rc.props()).thenReturn(props);
-        when(rc.nodes()).thenReturn(java.util.Collections.emptyMap());
+        when(rc.nodes()).thenReturn(emptyMap());
         when(rc.scopeJson()).thenReturn(null);
 
         JaywayJsonFinder finder = finderFor("{\"dataset\":{\"identifier\":\"http://example.org/id-iri\"}}");
@@ -155,7 +157,7 @@ class ResourceMapperTest {
         // subject
         ResourceConfig rc = mock(ResourceConfig.class, RETURNS_DEEP_STUBS);
         when(rc.subject().iriConst()).thenReturn("http://example.org/dist/4");
-        when(rc.nodes()).thenReturn(java.util.Collections.emptyMap());
+        when(rc.nodes()).thenReturn(emptyMap());
         when(rc.scopeJson()).thenReturn(null);
 
         // dcat:accessURL as IRI built from format and inline JSONPath
@@ -164,8 +166,8 @@ class ResourceMapperTest {
         when(vs.as()).thenReturn("iri");
         when(vs.json()).thenReturn(null);
         when(vs.format()).thenReturn("http://localhost:8080/api/access/datafile/${$.id}");
-        when(vs.map()).thenReturn(java.util.Collections.emptyMap());
-        when(vs.jsonPaths()).thenReturn(java.util.Collections.emptyList());
+        when(vs.map()).thenReturn(emptyMap());
+        when(vs.jsonPaths()).thenReturn(emptyList());
         when(vs.multi()).thenReturn(false);
 
         Map<String, ValueSource> props = new LinkedHashMap<>();
@@ -196,7 +198,7 @@ class ResourceMapperTest {
 
         ResourceConfig rc = mock(ResourceConfig.class, RETURNS_DEEP_STUBS);
         when(rc.subject().iriConst()).thenReturn("http://example.org/ds/1");
-        when(rc.nodes()).thenReturn(java.util.Collections.emptyMap());
+        when(rc.nodes()).thenReturn(emptyMap());
         when(rc.scopeJson()).thenReturn(null);
 
         ValueSource vs = mock(ValueSource.class);
@@ -210,7 +212,7 @@ class ResourceMapperTest {
         map.put("true", "http://publications.europa.eu/resource/authority/access-right/RESTRICTED");
         map.put("false", "http://publications.europa.eu/resource/authority/access-right/PUBLIC");
         when(vs.map()).thenReturn(map);
-        when(vs.jsonPaths()).thenReturn(java.util.Collections.emptyList());
+        when(vs.jsonPaths()).thenReturn(emptyList());
 
         Map<String, ValueSource> props = new LinkedHashMap<>();
         props.put("accessRights", vs);
@@ -252,8 +254,10 @@ class ResourceMapperTest {
                 "http://localhost:8080/api/access/datafile/${value}",
                 "rdfs:Resource",
                 false,
-                java.util.Collections.emptyMap(),
-                java.util.Collections.emptyMap());
+                emptyMap(),
+                emptyMap(),
+                null,
+                null);
 
         Map<String, NodeTemplate> nodes = new LinkedHashMap<>();
         nodes.put("acc", accT);
@@ -300,15 +304,7 @@ class ResourceMapperTest {
         nodeMap.put("tech", "http://publications.europa.eu/resource/authority/data-theme/TECH");
 
         NodeTemplate themeT = new NodeTemplate(
-                "theme",
-                "iri",
-                null,
-                "$.themes[*]",
-                null,
-                "skos:Concept",
-                true,
-                nodeMap,
-                java.util.Collections.emptyMap());
+                "theme", "iri", null, "$.themes[*]", null, "skos:Concept", true, nodeMap, emptyMap(), null, null);
 
         Map<String, NodeTemplate> nodes = new LinkedHashMap<>();
         nodes.put("theme", themeT);
@@ -370,8 +366,8 @@ class ResourceMapperTest {
         when(rc.subject().iriJson()).thenReturn("$.id");
         when(rc.subject().iriFormat()).thenReturn("${$$.env.apiBaseUrl}access/datafile/${value}");
 
-        when(rc.nodes()).thenReturn(java.util.Collections.emptyMap());
-        when(rc.props()).thenReturn(java.util.Collections.emptyMap());
+        when(rc.nodes()).thenReturn(emptyMap());
+        when(rc.props()).thenReturn(emptyMap());
         when(rc.scopeJson()).thenReturn(null);
 
         JaywayJsonFinder finder = finderFor("{\"env\":{\"apiBaseUrl\":\"https://acc.example/api/\"},\"id\":\"6\"}");
@@ -399,8 +395,8 @@ class ResourceMapperTest {
         when(rc.subject().iriJsonPaths()).thenReturn(List.of("$$.env.apiBaseUrl", "$.id"));
         when(rc.subject().iriFormat()).thenReturn("${1}access/datafile/${2}");
 
-        when(rc.nodes()).thenReturn(java.util.Collections.emptyMap());
-        when(rc.props()).thenReturn(java.util.Collections.emptyMap());
+        when(rc.nodes()).thenReturn(emptyMap());
+        when(rc.props()).thenReturn(emptyMap());
         when(rc.scopeJson()).thenReturn(null);
 
         JaywayJsonFinder finder = finderFor("{\"env\":{\"apiBaseUrl\":\"https://acc.example/api/\"},\"id\":\"6\"}");
@@ -427,15 +423,7 @@ class ResourceMapperTest {
 
         // NodeTemplate 'legi' is kind=iri and type=eli:LegalResource, but input is blank.
         NodeTemplate legiT = new NodeTemplate(
-                "legi",
-                "iri",
-                null,
-                "$.legi[*]",
-                null,
-                "eli:LegalResource",
-                true,
-                java.util.Collections.emptyMap(),
-                java.util.Collections.emptyMap());
+                "legi", "iri", null, "$.legi[*]", null, "eli:LegalResource", true, emptyMap(), emptyMap(), null, null);
 
         Map<String, NodeTemplate> nodes = new LinkedHashMap<>();
         nodes.put("legi", legiT);
@@ -480,8 +468,8 @@ class ResourceMapperTest {
         when(prefLabel.multi()).thenReturn(false);
         when(prefLabel.lang()).thenReturn("en");
         when(prefLabel.datatype()).thenReturn(null);
-        when(prefLabel.map()).thenReturn(java.util.Collections.emptyMap());
-        when(prefLabel.jsonPaths()).thenReturn(java.util.Collections.emptyList());
+        when(prefLabel.map()).thenReturn(emptyMap());
+        when(prefLabel.jsonPaths()).thenReturn(emptyList());
         when(prefLabel.format()).thenReturn(null);
         when(prefLabel.constValue()).thenReturn(null);
 
@@ -489,7 +477,7 @@ class ResourceMapperTest {
         nodeProps.put("prefLabel", prefLabel);
 
         NodeTemplate dtypeT = new NodeTemplate(
-                "dtype", "bnode", null, null, null, "skos:Concept", false, java.util.Collections.emptyMap(), nodeProps);
+                "dtype", "bnode", null, null, null, "skos:Concept", false, emptyMap(), nodeProps, null, null);
 
         Map<String, NodeTemplate> nodes = new LinkedHashMap<>();
         nodes.put("dtype", dtypeT);
@@ -511,5 +499,158 @@ class ResourceMapperTest {
         // No theme triple should exist (dtype node omitted).
         assertThat(model.contains(null, model.getProperty("http://www.w3.org/ns/dcat#theme"), (RDFNode) null))
                 .isFalse();
+    }
+
+    @Test
+    @DisplayName("Reproducer #47: ValueSource format ${value} lowercases DOI in landingPage")
+    void reproducer_47_landingpage_doi_is_lowercased() throws Exception {
+        // Prefixes
+        Map<String, String> ns = new LinkedHashMap<>();
+        ns.put("dcat", "http://www.w3.org/ns/dcat#");
+        ns.put("dct", "http://purl.org/dc/terms/");
+        Prefixes prefixes = new Prefixes(ns);
+
+        // ResourceConfig + subject
+        ResourceConfig rc = mock(ResourceConfig.class, RETURNS_DEEP_STUBS);
+        when(rc.subject().iriConst()).thenReturn("http://example.org/ds/1");
+        when(rc.subject().iriTemplate()).thenReturn(null);
+        when(rc.subject().iriFormat()).thenReturn(null);
+        when(rc.subject().iriJson()).thenReturn(null);
+
+        // ValueSource: landingPage is IRI created via format + ${value}
+        ValueSource vsLanding = mock(ValueSource.class);
+        when(vsLanding.predicate()).thenReturn("dcat:landingPage");
+        when(vsLanding.as()).thenReturn("iri");
+        when(vsLanding.constValue()).thenReturn(null);
+        when(vsLanding.json()).thenReturn("$.datasetJson.datasetVersion.datasetPersistentId");
+        when(vsLanding.multi()).thenReturn(false);
+        when(vsLanding.lang()).thenReturn(null);
+        when(vsLanding.datatype()).thenReturn(null);
+        when(vsLanding.map()).thenReturn(emptyMap());
+        when(vsLanding.jsonPaths()).thenReturn(emptyList());
+
+        // The format described in the issue
+        when(vsLanding.format()).thenReturn("https://ssh.datastations.nl/datasets.xhtml&persistentId=${value}");
+
+        Map<String, ValueSource> props = new LinkedHashMap<>();
+        props.put("landing", vsLanding);
+        when(rc.props()).thenReturn(props);
+        when(rc.nodes()).thenReturn(emptyMap());
+        when(rc.scopeJson()).thenReturn(null);
+
+        // Minimal input JSON (case-sensitive DOI suffix)
+        String json = "{"
+                + "\"datasetJson\":{"
+                + "  \"datasetVersion\":{"
+                + "    \"datasetPersistentId\":\"doi:10.5072/DSS/SDPOVA\""
+                + "  }"
+                + "}"
+                + "}";
+
+        JaywayJsonFinder finder = finderFor(json);
+        ResourceMapper mapper = new ResourceMapper(rc, prefixes, "dcat:Dataset");
+        Model model = mapper.build(finder);
+
+        // Extract produced landingPage URI
+        List<Statement> stmts = model.listStatements(
+                        null, model.getProperty("http://www.w3.org/ns/dcat#landingPage"), (RDFNode) null)
+                .toList();
+
+        assertThat(stmts).hasSize(1);
+        assertThat(stmts.get(0).getObject().isResource()).isTrue();
+
+        String produced = stmts.get(0).getObject().asResource().getURI();
+
+        // What we EXPECT (case preserved)
+        assertThat(produced)
+                .isEqualTo("https://ssh.datastations.nl/datasets.xhtml&persistentId=doi:10.5072/DSS/SDPOVA");
+    }
+
+    @Test
+    @DisplayName("ValueSource literal with map supports onUnMappedValue and onNoInputValue fallbacks")
+    void literal_fallback_values_work() throws Exception {
+        // Real Prefixes
+        Map<String, String> ns = new LinkedHashMap<>();
+        ns.put("dct", "http://purl.org/dc/terms/");
+        Prefixes prefixes = new Prefixes(ns);
+
+        // ResourceConfig with deep stubs for subject()
+        ResourceConfig rc = mock(ResourceConfig.class, RETURNS_DEEP_STUBS);
+        when(rc.subject().iriConst()).thenReturn("http://example.org/id");
+        when(rc.subject().iriTemplate()).thenReturn(null);
+        when(rc.subject().iriFormat()).thenReturn(null);
+        when(rc.subject().iriJson()).thenReturn(null);
+
+        // ValueSource for dct:status with mapping and fallbacks
+        Map<String, String> statusMap = new LinkedHashMap<>();
+        statusMap.put("published", "published");
+        statusMap.put("draft", "draft");
+
+        ValueSource vsStatus = mock(ValueSource.class);
+        when(vsStatus.predicate()).thenReturn("dct:status");
+        when(vsStatus.as()).thenReturn("literal");
+        when(vsStatus.json()).thenReturn("$.status");
+        when(vsStatus.map()).thenReturn(statusMap);
+        when(vsStatus.onUnMappedValue()).thenReturn("unknown");
+        when(vsStatus.onNoInputValue()).thenReturn("not specified");
+        when(vsStatus.lang()).thenReturn(null);
+        when(vsStatus.datatype()).thenReturn(null);
+        when(vsStatus.multi()).thenReturn(false);
+        when(vsStatus.format()).thenReturn(null);
+        when(vsStatus.jsonPaths()).thenReturn(emptyList());
+
+        Map<String, ValueSource> props = new LinkedHashMap<>();
+        props.put("status", vsStatus);
+
+        when(rc.props()).thenReturn(props);
+        when(rc.scopeJson()).thenReturn(null);
+        when(rc.nodes()).thenReturn(emptyMap());
+
+        ResourceMapper mapper = new ResourceMapper(rc, prefixes, "dcat:Dataset");
+
+        // Test 1: Mapped value works normally
+        JaywayJsonFinder finder1 = finderFor("{\"status\": \"published\"}");
+        Model model1 = mapper.build(finder1);
+
+        List<Statement> stmts1 = model1.listStatements().toList();
+        assertThat(stmts1).hasSize(2); // type + status
+
+        Statement statusStmt1 = stmts1.stream()
+                .filter(s -> s.getPredicate().getURI().equals("http://purl.org/dc/terms/status"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(statusStmt1.getObject().isLiteral()).isTrue();
+        assertThat(statusStmt1.getObject().asLiteral().getString()).isEqualTo("published");
+
+        // Test 2: Unmapped value uses onUnMappedValue
+        JaywayJsonFinder finder2 = finderFor("{\"status\": \"archived\"}");
+        Model model2 = mapper.build(finder2);
+
+        List<Statement> stmts2 = model2.listStatements().toList();
+        assertThat(stmts2).hasSize(2); // type + status
+
+        Statement statusStmt2 = stmts2.stream()
+                .filter(s -> s.getPredicate().getURI().equals("http://purl.org/dc/terms/status"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(statusStmt2.getObject().isLiteral()).isTrue();
+        assertThat(statusStmt2.getObject().asLiteral().getString()).isEqualTo("unknown");
+
+        // Test 3: No input uses onNoInputValue
+        JaywayJsonFinder finder3 = finderFor("{}");
+        Model model3 = mapper.build(finder3);
+
+        List<Statement> stmts3 = model3.listStatements().toList();
+        assertThat(stmts3).hasSize(2); // type + status
+
+        Statement statusStmt3 = stmts3.stream()
+                .filter(s -> s.getPredicate().getURI().equals("http://purl.org/dc/terms/status"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(statusStmt3.getObject().isLiteral()).isTrue();
+        assertThat(statusStmt3.getObject().asLiteral().getString()).isEqualTo("not specified");
     }
 }
