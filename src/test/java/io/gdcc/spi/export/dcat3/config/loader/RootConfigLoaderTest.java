@@ -321,12 +321,43 @@ public class RootConfigLoaderTest {
         RootConfig rootConfig = RootConfigLoader.load();
 
         // Assert: element ids sorted deterministically
-        assertThat(rootConfig.elements()).extracting(e -> e.id()).containsExactly("alpha", "beta", "zeta");
+        assertThat(rootConfig.elements()).extracting(io.gdcc.spi.export.dcat3.config.model.Element::id).containsExactly("alpha", "beta", "zeta");
 
         // Assert: relations sorted deterministically (subject, predicate, object)
         assertThat(rootConfig.relations())
                 .extracting(r -> r.subjectElementId() + "|" + r.predicateCurieOrIri() + "|" + r.objectElementId())
                 .containsExactly("alpha|dcat:dataset|zeta", "zeta|dcat:distribution|beta");
+    }
+
+    @Test
+    void parses_display_name_when_present_and_null_when_absent() throws Exception {
+        // Arrange
+        Path rootFile = temp.resolve("dcat-root-displaynames.properties");
+        Files.writeString(
+                rootFile,
+                """
+            dcat.trace.enabled = false
+            dcat.format.turtle.availableToUsers = true;
+            dcat.format.turtle.displayName = DCAT-AP-NL (Turtle)
+            dcat.format.rdfXml.availableToUsers = true;
+            # rdfXml has no displayName -> null expected
+            dcat.format.jsonLd.availableToUsers = true;
+            dcat.format.jsonLd.displayName = DCAT-AP-NL (JSON-LD)
+            element.catalog.id = catalog
+            element.catalog.type = dcat:Catalog
+            element.catalog.file = dcat-catalog.properties
+            """);
+        Files.writeString(temp.resolve("dcat-catalog.properties"), "subject.iri.const = https://example.org/cat");
+
+        System.setProperty(RootConfigLoader.SYS_PROP, rootFile.toString());
+
+        // Act
+        RootConfig rootConfig = RootConfigLoader.load();
+
+        // Assert
+        assertThat(rootConfig.formats().get("turtle").displayName()).isEqualTo("DCAT-AP-NL (Turtle)");
+        assertThat(rootConfig.formats().get("rdfXml").displayName()).isNull();
+        assertThat(rootConfig.formats().get("jsonLd").displayName()).isEqualTo("DCAT-AP-NL (JSON-LD)");
     }
 
     // --- helpers ---

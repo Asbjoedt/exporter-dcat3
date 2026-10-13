@@ -144,6 +144,31 @@ class ResourceMapperTest {
         assertThat(idStmts.get(0).getObject().asResource().getURI()).isEqualTo("http://example.org/id-iri");
     }
 
+    @Test
+    @DisplayName("subject invalid IRI is encoded")
+    void subject_invalid_iri_are_encoded() throws Exception {
+        Map<String, String> ns = new LinkedHashMap<>();
+        ns.put("dcat", "http://www.w3.org/ns/dcat#");
+        Prefixes prefixes = new Prefixes(ns);
+
+        ResourceConfig rc = mock(ResourceConfig.class, RETURNS_DEEP_STUBS);
+        when(rc.subject().iriConst()).thenReturn("http://example.org/a|b");
+        when(rc.subject().iriTemplate()).thenReturn(null);
+        when(rc.subject().iriFormat()).thenReturn(null);
+        when(rc.subject().iriJson()).thenReturn(null);
+        when(rc.props()).thenReturn(emptyMap());
+        when(rc.nodes()).thenReturn(emptyMap());
+        when(rc.scopeJson()).thenReturn(null);
+
+        JaywayJsonFinder finder = finderFor("{}");
+
+        ResourceMapper encodeMapper = new ResourceMapper(rc, prefixes, "dcat:Dataset");
+        Model encodedModel = encodeMapper.build(finder);
+        Resource encodedSubject = encodedModel.listSubjects().next();
+        assertThat(encodedSubject.getURI()).isEqualTo("http://example.org/a%7Cb");
+    }
+
+
     // --- NEW TESTS: iri.format & iri.map on ValueSource and NodeTemplate ---
 
     @Test
