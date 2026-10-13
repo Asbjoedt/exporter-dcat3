@@ -1,11 +1,7 @@
 # DCAT‑AP-DK Mapping for Datavejviser
+This package contains mapping configurations to convert JSON metadata from the Danish national [DeiC Dataverse](https://dataverse.deic.dk/) installation into **DCAT‑AP‑DK 3.0–compliant XML/RDF** for transferring metadata to the national [Datavejviser](https://datavejviser.dk/) public data catalog. It covers Dataset, Distribution, DataService, and Catalog metadata. 🗺️
 
-This package contains mapping configurations to convert Dataverse JSON metadata relevant for Datavejviser into **DCAT‑AP‑DK 3.0–compliant XML/RDF**. It covers Dataset, Distribution, DataService, and Catalog metadata. 🗺️
-
----
-
-⚠️ **Point of Attention**: The mapping to the Danish AP-DK-3.0 profile is currently incomplete. It does not include all optional or recommended fields, as it has been tailored to the specific user 
-context. The intention is to remove any fields and TSV entries that do not apply to your organization. Additional relevant DCAT-AP-NL 3.0 mappings can, of course, be added over time.
+⚠️ **Point of Attention**: The mapping to the Danish AP-DK-3.0 profile is currently incomplete. It does not include all optional or recommended fields, as it has been tailored to the specific user context. The intention is to remove any fields and TSV entries that do not apply to your organization. Additional relevant DCAT-AP-NL 3.0 mappings can, of course, be added over time.
 
 
 ## Files Included
@@ -14,8 +10,6 @@ context. The intention is to remove any fields and TSV entries that do not apply
 - **dcat-distribution.properties**: Maps file-level metadata to DCAT distributions.
 - **dcat-dataservice.properties**: Defines and populates the DataService node for the Dataverse API.
 - **dcat-catalog.properties**: Maps catalog-wide metadata including contact and publisher.
-
----
 
 ## How the Mapping Works
 
